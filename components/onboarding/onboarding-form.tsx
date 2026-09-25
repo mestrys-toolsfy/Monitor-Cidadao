@@ -76,7 +76,7 @@ export function OnboardingForm({ supabase }: { supabase: { url: string; key: str
   }
 
   return (
-    <form className="flex max-w-2xl flex-col gap-md" action="javascript:void(0)" onSubmit={aoEnviar}>
+    <form className="flex max-w-2xl flex-col gap-space-md" action="javascript:void(0)" onSubmit={aoEnviar}>
       <Card className="text-body-md">
         Dado sensível · LGPD.{" "}
         <Link className="inline-flex min-h-12 items-center underline" href="/privacidade">
@@ -84,7 +84,7 @@ export function OnboardingForm({ supabase }: { supabase: { url: string; key: str
         </Link>
         .
       </Card>
-      <label className="flex min-h-12 items-start gap-sm text-body-lg text-on-surface">
+      <label className="flex min-h-12 items-start gap-space-sm text-body-lg text-on-surface">
         <span className="inline-flex size-12 shrink-0 items-center justify-center">
           <input
             className="size-5"
@@ -98,7 +98,7 @@ export function OnboardingForm({ supabase }: { supabase: { url: string; key: str
           conteúdo. Se eu esquecer a senha de sigilo e o código de recuperação, os votos ficam ilegíveis.
         </span>
       </label>
-      <label className="flex min-h-12 items-start gap-sm text-body-lg text-on-surface">
+      <label className="flex min-h-12 items-start gap-space-sm text-body-lg text-on-surface">
         <span className="inline-flex size-12 shrink-0 items-center justify-center">
           <input className="size-5" type="checkbox" checked={optIn} onChange={(event) => setOptIn(event.target.checked)} />
         </span>

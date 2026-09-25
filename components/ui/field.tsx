@@ -11,7 +11,7 @@ export function Field({
   children: ReactNode;
 }) {
   return (
-    <label className="flex flex-col gap-xs text-label-lg text-on-surface">
+    <label className="flex flex-col gap-space-xs text-label-lg text-on-surface">
       <span>{label}</span>
       {children}
     </label>

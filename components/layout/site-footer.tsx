@@ -4,8 +4,8 @@ import { cn } from "@/lib/utils";
 
 export function SiteFooter() {
   return (
-    <footer className="mt-auto border-t border-outline-variant bg-surface-container-low py-lg text-body-sm text-on-surface-variant">
-      <div className={cn(faixaPagina, "flex flex-col gap-sm")}>
+    <footer className="mt-auto border-t border-outline-variant bg-surface-container-low py-space-lg text-body-sm text-on-surface-variant">
+      <div className={cn(faixaPagina, "flex flex-col gap-space-sm")}>
         <p>© 2026 Mestry&apos;s Tecnologia e Consultoria em TI LTDA. Todos os direitos reservados.</p>
         <p>CNPJ 68.027.889/0001-34</p>
         <p>Rua Pais Leme, 215, Conj 1713, Pinheiros/SP</p>

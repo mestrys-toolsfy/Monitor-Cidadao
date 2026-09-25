@@ -7,7 +7,7 @@ export const faixaPagina =
 
 export function PageMain({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <main className={cn(faixaPagina, "flex flex-1 flex-col gap-gutter py-xl tablet:gap-gutter-tablet", className)}>
+    <main className={cn(faixaPagina, "flex flex-1 flex-col gap-gutter py-space-xl tablet:gap-gutter-tablet", className)}>
       {children}
     </main>
   );

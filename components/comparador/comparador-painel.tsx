@@ -91,7 +91,7 @@ export function ComparadorPainel() {
   }
 
   return (
-    <div className="flex flex-col gap-md">
+    <div className="flex flex-col gap-space-md">
       <Card className="text-body-md">
         Dado sensível · LGPD. A comparação acontece neste navegador. A consulta à Câmara pede só a lista pública, sem o
         seu voto.{" "}
@@ -99,7 +99,7 @@ export function ComparadorPainel() {
           Política de privacidade
         </Link>
       </Card>
-      <form className="flex max-w-md flex-col gap-md" onSubmit={comparar}>
+      <form className="flex max-w-md flex-col gap-space-md" onSubmit={comparar}>
         <Field label="Senha de sigilo">
           <TextInput name="senha_sigilo" type="password" autoComplete="current-password" required />
         </Field>

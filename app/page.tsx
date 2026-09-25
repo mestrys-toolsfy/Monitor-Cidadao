@@ -9,17 +9,17 @@ export default function HomePage() {
         Um espaço para acompanhar a atividade pública com clareza. Quando você registrar um voto, ele é protegido no
         seu navegador. A empresa não lê o conteúdo.
       </p>
-      <div className="flex max-w-md flex-col gap-sm">
-        <Button asChild>
+      <div className="flex w-full max-w-md flex-col items-stretch gap-space-sm">
+        <Button asChild className="w-full">
           <Link href="/onboarding">Começar pelo compromisso de sigilo</Link>
         </Button>
-        <Button asChild variant="outlined">
+        <Button asChild className="w-full" variant="outlined">
           <Link href="/comparador">Comparar como eles votaram</Link>
         </Button>
-        <Button asChild variant="outlined">
+        <Button asChild className="w-full" variant="outlined">
           <Link href="/linha-do-tempo">Linha do tempo do Congresso</Link>
         </Button>
-        <Button asChild variant="outlined">
+        <Button asChild className="w-full" variant="outlined">
           <Link href="/privacidade">Como o voto é protegido</Link>
         </Button>
       </div>

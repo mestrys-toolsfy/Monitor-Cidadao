@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function PrivacidadePage() {
   return (
-    <PageMain className="gap-md">
+    <PageMain className="gap-space-md">
       <h1 className="text-headline-lg text-on-surface">Privacidade</h1>
       <p className="max-w-2xl text-body-lg text-on-surface">
         O voto é cifrado no navegador, antes de qualquer envio. A Mestry&apos;s Tecnologia e Consultoria em TI LTDA não

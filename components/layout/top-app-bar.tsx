@@ -23,7 +23,7 @@ export function TopAppBar() {
   const expandida = inicio && !recolhida;
 
   return (
-    <header className="sticky top-0 z-30 bg-surface-dim">
+    <header className="sticky top-0 z-30 bg-surface-dim dark:bg-surface-container">
       <div className={cn(faixaPagina, "grid h-16 grid-cols-[1fr_auto_1fr] items-center")}>
         <div />
         {expandida ? (

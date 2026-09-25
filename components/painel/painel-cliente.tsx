@@ -107,7 +107,7 @@ export function PainelCliente({ supabase }: { supabase: { url: string; key: stri
   }
 
   return (
-    <div className="flex max-w-2xl flex-col gap-md">
+    <div className="flex max-w-2xl flex-col gap-space-md">
       <Link
         className="inline-flex min-h-12 w-fit items-center gap-2 rounded-full border border-tertiary bg-tertiary-container px-4 text-label-lg text-on-tertiary-container"
         href="/privacidade"
@@ -115,7 +115,7 @@ export function PainelCliente({ supabase }: { supabase: { url: string; key: stri
         <ShieldCheck aria-hidden="true" className="size-6" />
         Dado sensível · LGPD
       </Link>
-      <form className="flex flex-col gap-md" action="javascript:void(0)" onSubmit={mostrar}>
+      <form className="flex flex-col gap-space-md" action="javascript:void(0)" onSubmit={mostrar}>
         <Field label="Senha de sigilo">
           <TextInput name="senha_sigilo" type="password" autoComplete="off" required />
         </Field>
@@ -127,7 +127,7 @@ export function PainelCliente({ supabase }: { supabase: { url: string; key: stri
         </p>
       ) : null}
       {aberto ? (
-        <ul className="flex flex-col gap-sm">
+        <ul className="flex flex-col gap-space-sm">
           {linhas.map((linha) => (
             <li key={linha.cargo}>
               <Card>

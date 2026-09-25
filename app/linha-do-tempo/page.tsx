@@ -75,8 +75,8 @@ function BlocoCasa({
   bloco: Bloco;
 }) {
   return (
-    <section className="flex flex-col gap-md">
-      <div className="flex flex-col gap-sm">
+    <section className="flex flex-col gap-space-md">
+      <div className="flex flex-col gap-space-sm">
         <h2 className="text-headline-sm text-on-surface">{titulo}</h2>
         <p className="max-w-2xl text-body-lg text-on-surface">{intro}</p>
       </div>
@@ -91,12 +91,12 @@ function BlocoCasa({
         </p>
       ) : null}
       {bloco.itens.length > 0 ? (
-        <ul className="flex flex-col gap-md">
+        <ul className="flex flex-col gap-space-md">
           {bloco.itens.map((item) => {
             const data = dataPt(item.data);
             return (
               <li key={`${item.casa}-${item.id}`}>
-                <Card as="article" className="flex flex-col gap-sm">
+                <Card as="article" className="flex flex-col gap-space-sm">
                   <h3 className="text-headline-sm text-on-surface">{rotuloItem(item)}</h3>
                   <p className="text-body-md text-on-surface-variant">
                     {item.titulo}
@@ -128,8 +128,8 @@ export default async function LinhaDoTempoPage() {
   ]);
 
   return (
-    <PageMain className="gap-xl">
-      <div className="flex flex-col gap-md">
+    <PageMain className="gap-space-xl">
+      <div className="flex flex-col gap-space-md">
         <StatusChip>Dado público · Lei de Acesso à Informação</StatusChip>
         <h1 className="text-headline-lg text-on-surface">Linha do tempo</h1>
         <p className="max-w-2xl text-body-lg text-on-surface">
@@ -159,9 +159,9 @@ export default async function LinhaDoTempoPage() {
         vazio="Nenhuma matéria recente do Senado apareceu nesta consulta."
       />
 
-      <section className="flex flex-col gap-sm">
+      <section className="flex flex-col gap-space-sm">
         <h2 className="text-headline-sm text-on-surface">Palavras da Câmara e do Senado</h2>
-        <ul className="flex flex-wrap gap-sm">
+        <ul className="flex flex-wrap gap-space-sm">
           {GLOSSARIO.map((termo) => (
             <li key={termo}>
               <StatusChip tone="neutro">{rotuloCivico(termo)}</StatusChip>

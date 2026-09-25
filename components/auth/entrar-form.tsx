@@ -50,7 +50,7 @@ export function EntrarForm({ supabase }: { supabase: { url: string; key: string 
   }
 
   return (
-    <form className="flex max-w-md flex-col gap-md" action="javascript:void(0)" onSubmit={aoEnviar}>
+    <form className="flex max-w-md flex-col gap-space-md" action="javascript:void(0)" onSubmit={aoEnviar}>
       <p className="text-body-md text-on-surface-variant">
         Esta senha abre a conta. Ela não é a senha de sigilo que protege o voto.
       </p>

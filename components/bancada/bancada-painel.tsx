@@ -252,7 +252,7 @@ export function BancadaPainel({ supabase }: { supabase: { url: string; key: stri
 
   if (etapa === "criar" || etapa === "abrir") {
     return (
-      <form className="flex max-w-md flex-col gap-md" action="javascript:void(0)" onSubmit={etapa === "criar" ? criarChave : abrirChave}>
+      <form className="flex max-w-md flex-col gap-space-md" action="javascript:void(0)" onSubmit={etapa === "criar" ? criarChave : abrirChave}>
         <Field label="Senha de sigilo">
           <TextInput name="senha_sigilo" type="password" autoComplete="off" required />
         </Field>
@@ -268,7 +268,7 @@ export function BancadaPainel({ supabase }: { supabase: { url: string; key: stri
   }
 
   return (
-    <div className="flex max-w-2xl flex-col gap-lg">
+    <div className="flex max-w-2xl flex-col gap-space-lg">
       <StatusChip tone="primary">{progresso} de 5 preenchidos</StatusChip>
       {codigo ? (
         <p className="rounded-lg border border-tertiary bg-tertiary-container px-4 py-3 text-body-md text-on-tertiary-container" role="status">
@@ -281,12 +281,12 @@ export function BancadaPainel({ supabase }: { supabase: { url: string; key: stri
           Política de privacidade
         </Link>
       </Card>
-      <form className="flex flex-col gap-md" onSubmit={buscarDeputados}>
-        <div className="flex flex-col gap-sm">
+      <form className="flex flex-col gap-space-md" onSubmit={buscarDeputados}>
+        <div className="flex flex-col gap-space-sm">
           <span className="text-label-lg text-on-surface" id="rotulo-cargo">
             Cargo
           </span>
-          <div className="flex flex-wrap gap-sm" role="group" aria-labelledby="rotulo-cargo">
+          <div className="flex flex-wrap gap-space-sm" role="group" aria-labelledby="rotulo-cargo">
             {CARGOS.map((item) => (
               <Chip
                 key={item}
@@ -312,7 +312,7 @@ export function BancadaPainel({ supabase }: { supabase: { url: string; key: stri
             <Button type="submit" variant="outlined">
               Buscar na Câmara
             </Button>
-            <ul className="flex flex-col gap-sm">
+            <ul className="flex flex-col gap-space-sm">
               {deputados.map((pessoa) => {
                 const escolhida = escolhido?.id === pessoa.id;
                 return (
@@ -337,7 +337,7 @@ export function BancadaPainel({ supabase }: { supabase: { url: string; key: stri
           </>
         ) : null}
       </form>
-      <form className="flex flex-col gap-md" onSubmit={registrar}>
+      <form className="flex flex-col gap-space-md" onSubmit={registrar}>
         {cargo !== "deputado_federal" && !branco ? (
           <>
             <Field label="Nome">
@@ -375,7 +375,7 @@ export function BancadaPainel({ supabase }: { supabase: { url: string; key: stri
         </Button>
       </form>
       {memoria.length > 0 ? (
-        <ul className="flex flex-col gap-sm text-body-lg text-on-surface">
+        <ul className="flex flex-col gap-space-sm text-body-lg text-on-surface">
           {memoria.map((linha) => (
             <li key={linha}>{linha}</li>
           ))}
