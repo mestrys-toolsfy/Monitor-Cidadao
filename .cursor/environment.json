@@ -1,0 +1,17 @@
+{
+  "name": "Monitor Cidadão",
+  "install": "npm install",
+  "terminals": [
+    {
+      "name": "next-dev",
+      "command": "npm run dev",
+      "description": "Next.js dev server (App Router) on http://localhost:3000"
+    }
+  ],
+  "ports": [
+    {
+      "name": "next-dev",
+      "port": 3000
+    }
+  ]
+}
