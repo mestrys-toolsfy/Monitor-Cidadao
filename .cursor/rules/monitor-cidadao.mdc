@@ -1,0 +1,88 @@
+---
+description: Regras persistentes do projeto Monitor Cidadão
+globs: ["**/*.ts", "**/*.tsx", "**/*.sql", "**/*.css"]
+alwaysApply: true
+---
+
+# Monitor Cidadão — Regras Persistentes
+
+## Stack (não negociável)
+- Next.js 14+ App Router, React 19, TypeScript strict
+- Tailwind CSS + shadcn/ui + Radix UI + Lucide Icons
+- TanStack Query para data fetching
+- Supabase com @supabase/ssr (NUNCA auth-helpers-nextjs)
+- Dexie.js + LocalForage para persistência local
+- Web Crypto API (SubtleCrypto) para criptografia client-side
+- @react-pdf/renderer + html-to-image para exportação
+- Zustand apenas para estado de UI
+- Zod + React Hook Form para formulários
+- Recharts para gráficos
+- Deploy: Vercel
+
+## Privacidade & Segurança (LGPD by design)
+- Escolhas de voto SÃO dados sensíveis (LGPD art. 5º, II).
+- NUNCA persistir voto em claro em qualquer camada (Supabase, logs, 
+  analytics, cache, Sentry, Vercel logs).
+- Cifrar payload de voto com AES-GCM 256 + envelope RSA-OAEP 2048 
+  ANTES de qualquer envio ao servidor.
+- Chave privada RSA vive APENAS no IndexedDB do navegador, cifrada com 
+  chave derivada da senha do usuário (PBKDF2).
+- Supabase RLS obrigatória em TODAS as tabelas.
+- NUNCA logar conteúdo sensível. Se precisar debugar, logar apenas IDs.
+
+## Supabase SSR (crítico)
+- SEMPRE @supabase/ssr. NUNCA @supabase/auth-helpers-nextjs.
+- Padrão getAll/setAll para cookies (conforme docs oficiais 2026).
+- Dois clientes: createBrowserClient e createServerClient.
+- Middleware renova sessão em toda navegação autenticada.
+
+## Design System (fonte de verdade: @DESIGN.md)
+- Material Design 3 (Material You)
+- Tipografia: Inter (Google Fonts)
+- Paleta cívica brasileira (ver DESIGN.md para tokens completos):
+  - Verde Cívico (primary): #008732
+  - Azul República (secondary): #1E40AF / #002776
+  - Amarelo Cívico (warning): #EAB308 / #FFDF00
+  - Vermelho Cívico (destructive): #DC2626
+- Tema Claro + Tema Escuro em 100% das telas.
+- Componentes MD3 obrigatórios: NavigationRail (desktop), NavigationBar 
+  (mobile), TopAppBar, Cards, Chips, Segmented Buttons, FAB, TextFields 
+  outlined.
+- Acessibilidade WCAG AA mínimo. Áreas de toque ≥ 48dp. Labels semânticas 
+  em todos os ícones.
+
+## Convenções de Código
+- Componentes: PascalCase. Arquivos: kebab-case.
+- Server Components por padrão. 'use client' apenas quando estritamente 
+  necessário (interatividade, hooks, Web Crypto).
+- NUNCA 'use client' em layouts raiz.
+- Tipos globais em types/index.ts.
+- Validação Zod em todo formulário e route handler.
+- Server Actions para mutações simples. Route Handlers para proxy de APIs 
+  governamentais.
+- Clients de API gov: lib/api/{camara,senado,tse,transparencia}.ts.
+
+## Linguagem Cidadã
+- Traduzir siglas em UI: PL → "Projeto de Lei", PEC → "Proposta de Emenda", 
+  CEAP → "Gastos do mandato", relator → "responsável pelo parecer", 
+  obstrução → "tentativa de atrasar a votação".
+- Nunca exibir jargão sem glossário acessível.
+- Textos de UI em pt-BR.
+
+## Conformidade Legal
+- Footer global: "© 2026 Mestry's Tecnologia e Consultoria em TI LTDA. 
+  Todos os direitos reservados." + CNPJ 68.027.889/0001-34 + endereço 
+  Rua Pais Leme, 215, Conj 1713, Pinheiros/SP + Central +55 11 3038-7214 
+  + LGPD +55 11 5283-9382 + contato@mestrys.com.br.
+- Toda tela com dados sensíveis: badge LGPD + link para política de 
+  privacidade.
+- Consentimento explícito no onboarding.
+
+## O que NUNCA fazer
+- ❌ Persistir voto em claro.
+- ❌ Enviar chave privada RSA ao servidor.
+- ❌ Usar @supabase/auth-helpers-nextjs.
+- ❌ Usar Pages Router.
+- ❌ Instalar Redux, MobX ou similares.
+- ❌ Deploy sem RLS habilitada nas tabelas tocadas.
+- ❌ Exibir jargão técnico sem tradução.
