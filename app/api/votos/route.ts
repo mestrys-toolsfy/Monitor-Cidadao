@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { fromBase64Url } from "@/lib/crypto/bytes";
-import { parseVoteAad } from "@/lib/crypto/envelopes";
+import { fromBase64Url, toBase64Url } from "@/lib/crypto/bytes";
+import { canonicalVoteAad, parseVoteAad, parseVoteEnvelope } from "@/lib/crypto/envelopes";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
 import { contemCampoDeVotoEmClaro, envelopeVotoSchema } from "@/lib/validators/voto";
@@ -94,4 +94,61 @@ export async function POST(request: Request) {
   }
 
   return json({ id: aad.recordId }, 201);
+}
+
+function deBytea(value: unknown): Uint8Array {
+  if (value instanceof Uint8Array) return value;
+  if (typeof value !== "string" || !value.startsWith("\\x")) {
+    throw new Error("bytea");
+  }
+  const hex = value.slice(2);
+  if (hex.length % 2 !== 0 || !/^[0-9a-fA-F]*$/.test(hex)) {
+    throw new Error("bytea");
+  }
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let index = 0; index < bytes.length; index += 1) {
+    bytes[index] = Number.parseInt(hex.slice(index * 2, index * 2 + 2), 16);
+  }
+  return bytes;
+}
+
+/**
+ * Devolve só envelopes cifrados da conta. O conteúdo do voto não sai daqui.
+ */
+export async function GET() {
+  if (!isSupabaseConfigured()) {
+    return json({ erro: "A persistência do voto protegido ainda não está configurada." }, 501);
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.getUser();
+  if (error || !data.user) {
+    return json({ erro: "É preciso entrar na conta para ler os votos protegidos." }, 401);
+  }
+
+  const { data: linhas, error: selectError } = await supabase
+    .from("votos_cifrados")
+    .select("id, schema_version, alg, ciphertext, iv, wrapped_key")
+    .eq("user_id", data.user.id);
+
+  if (selectError || !linhas) {
+    return json({ erro: "Não foi possível ler os votos protegidos." }, 500);
+  }
+
+  try {
+    const itens = linhas.map((linha) => {
+      const envelope = parseVoteEnvelope({
+        v: linha.schema_version,
+        alg: linha.alg,
+        ct: toBase64Url(deBytea(linha.ciphertext)),
+        iv: toBase64Url(deBytea(linha.iv)),
+        wrapped_key: toBase64Url(deBytea(linha.wrapped_key)),
+        aad: canonicalVoteAad(data.user.id, linha.id),
+      });
+      return { id: linha.id, envelope };
+    });
+    return NextResponse.json({ itens });
+  } catch {
+    return json({ erro: "Não foi possível ler os votos protegidos." }, 500);
+  }
 }

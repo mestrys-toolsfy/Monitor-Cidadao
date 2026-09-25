@@ -8,6 +8,9 @@ export default function HomePage() {
         Um espaço para acompanhar a atividade pública com clareza. Quando você registrar um voto, ele é protegido no
         seu navegador. A empresa não lê o conteúdo.
       </p>
+      <Link className="inline-flex min-h-12 items-center font-semibold text-secondary underline" href="/onboarding">
+        Começar pelo compromisso de sigilo
+      </Link>
       <Link className="inline-flex min-h-12 items-center font-semibold text-secondary underline" href="/linha-do-tempo">
         Linha do tempo do Congresso
       </Link>
@@ -15,12 +18,7 @@ export default function HomePage() {
         Como o voto é protegido
       </Link>
       <p className="max-w-2xl text-sm leading-5 text-on-surface-variant">
-        A linha do tempo já mostra propostas públicas. O painel e o onboarding ainda não estão prontos. A verificação
-        técnica do sigilo fica em{" "}
-        <Link className="underline" href="/dev/sigilo">
-          /dev/sigilo
-        </Link>
-        .
+        Depois do compromisso, cadastre a bancada e abra o painel com a senha de sigilo.
       </p>
     </main>
   );

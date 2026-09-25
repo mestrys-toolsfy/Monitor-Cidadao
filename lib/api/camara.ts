@@ -2,8 +2,10 @@ import { buscarJson, ErroApiGoverno } from "@/lib/api/http";
 import { limparTextoPublico } from "@/lib/civic/linguagem";
 import {
   exigirSchema,
+  respostaDeputadosCamaraSchema,
   respostaProposicoesCamaraSchema,
   respostaVotacoesCamaraSchema,
+  type DeputadoResumo,
   type ItemCongresso,
   type VotacaoPlenario,
 } from "@/lib/validators/governo";
@@ -99,6 +101,28 @@ export async function listarProposicoesRecentes(limite = 8): Promise<ItemCongres
     .flat()
     .sort((a, b) => b.data.localeCompare(a.data))
     .slice(0, itens);
+}
+
+/**
+ * Busca deputados federais em exercício pelo nome.
+ * Contrato conferido: `GET /api/v2/deputados?nome=&itens=10`.
+ */
+export async function listarDeputados(nome: string): Promise<DeputadoResumo[]> {
+  const termo = nome.trim();
+  if (termo.length < 3) {
+    throw new ErroApiGoverno("camara", "configuracao", "Informe pelo menos 3 letras do nome.");
+  }
+  const url = new URL(`${BASE}/deputados`);
+  url.searchParams.set("nome", termo);
+  url.searchParams.set("itens", "10");
+  const body = await buscarJson(url.toString(), "camara");
+  const parsed = exigirSchema(respostaDeputadosCamaraSchema, body, "camara");
+  return parsed.dados.map((item) => ({
+    id: item.id,
+    nome: item.nome,
+    partido: item.siglaPartido ?? "sem partido",
+    uf: item.siglaUf ?? "--",
+  }));
 }
 
 /** Votações nominais e simbólicas mais recentes do plenário. */

@@ -50,6 +50,29 @@ export const respostaVotacoesCamaraSchema = z.object({
   dados: z.array(votacaoCamaraSchema),
 });
 
+/** Deputado em exercício na listagem `GET /deputados`. */
+export const deputadoCamaraSchema = z.object({
+  id: z.number().int(),
+  nome: z.string().min(1),
+  siglaPartido: z.string().min(1).nullable().optional(),
+  siglaUf: z.string().min(2).nullable().optional(),
+});
+
+export const respostaDeputadosCamaraSchema = z.object({
+  dados: z.array(deputadoCamaraSchema),
+});
+
+export const deputadoResumoSchema = z.object({
+  id: z.number().int(),
+  nome: z.string().min(1),
+  partido: z.string().min(1),
+  uf: z.string().min(2),
+});
+
+export const listaDeputadosResumoSchema = z.array(deputadoResumoSchema);
+
+export type DeputadoResumo = z.infer<typeof deputadoResumoSchema>;
+
 export const votacaoPlenarioSchema = z.object({
   id: z.string().min(1),
   data: z.string().min(1),
