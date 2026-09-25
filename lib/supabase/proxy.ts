@@ -3,9 +3,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getOptionalSupabasePublicEnv } from "@/lib/supabase/env";
 
 /**
- * Renova a sessão em cada navegação. A identidade é confirmada com
- * getUser(), que consulta o Auth. getSession() não serve para autorizar:
- * ele só lê o cookie.
+ * Renova a sessão em cada navegação. getClaims() roda logo após o cliente
+ * e verifica o token. getSession() não autoriza: só lê o cookie.
  */
 export async function updateSession(request: NextRequest) {
   const env = getOptionalSupabasePublicEnv();
@@ -36,7 +35,7 @@ export async function updateSession(request: NextRequest) {
   });
 
   try {
-    await supabase.auth.getUser();
+    await supabase.auth.getClaims();
   } catch {
     return supabaseResponse;
   }

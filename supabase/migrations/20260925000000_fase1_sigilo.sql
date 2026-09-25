@@ -99,6 +99,7 @@ create trigger profiles_rejeitar_backup_sem_opt_in
   for each row execute function public.rejeitar_backup_sem_opt_in();
 
 alter table public.profiles enable row level security;
+alter table public.profiles force row level security;
 
 revoke all on table public.profiles from public;
 revoke all on table public.profiles from anon;
@@ -168,27 +169,31 @@ create table public.votos_cifrados (
   user_id uuid not null references auth.users (id) on delete cascade,
   schema_version smallint not null default 1,
   alg text not null,
-  ciphertext text not null,
-  iv text not null,
-  wrapped_key text not null,
+  ciphertext bytea not null,
+  iv bytea not null,
+  wrapped_key bytea not null,
   created_at timestamptz not null default pg_catalog.now(),
   constraint votos_cifrados_schema_version_positiva check (schema_version >= 1),
   constraint votos_cifrados_alg_v1 check (
     schema_version <> 1 or alg = 'RSA-OAEP-256+A256GCM'
-  )
+  ),
+  constraint votos_cifrados_iv_12_bytes check (octet_length(iv) = 12)
 );
 
 comment on table public.votos_cifrados is
   'Voto já cifrado no navegador. Sem colunas de cargo, turno, ano ou político.';
 comment on column public.votos_cifrados.ciphertext is
-  'AES-GCM do payload. O servidor não tem a chave para ler.';
+  'AES-GCM do payload, em bytea. O servidor não tem a chave para ler.';
+comment on column public.votos_cifrados.iv is
+  'IV do AES-GCM. Exatamente 12 bytes, único por cifra.';
 comment on column public.votos_cifrados.wrapped_key is
-  'Chave AES embrulhada com RSA-OAEP. Não é o voto.';
+  'Chave AES embrulhada com RSA-OAEP, em bytea. Não é o voto.';
 
 -- Índice da chave estrangeira e do filtro de RLS.
 create index votos_cifrados_user_id_idx on public.votos_cifrados (user_id);
 
 alter table public.votos_cifrados enable row level security;
+alter table public.votos_cifrados force row level security;
 
 revoke all on table public.votos_cifrados from public;
 revoke all on table public.votos_cifrados from anon;
@@ -215,6 +220,59 @@ create policy votos_cifrados_update_own
 
 create policy votos_cifrados_delete_own
   on public.votos_cifrados
+  for delete
+  to authenticated
+  using ((select auth.uid()) = user_id);
+
+-- Registro do consentimento LGPD. Não guarda voto nem chave.
+create table public.consentimentos (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  finalidade text not null,
+  versao_texto text not null,
+  aceito boolean not null,
+  created_at timestamptz not null default pg_catalog.now(),
+  constraint consentimentos_finalidade_nao_vazia check (char_length(btrim(finalidade)) > 0),
+  constraint consentimentos_versao_nao_vazia check (char_length(btrim(versao_texto)) > 0)
+);
+
+comment on table public.consentimentos is
+  'Histórico de consentimento do cidadão. Sem conteúdo de voto.';
+comment on column public.consentimentos.finalidade is
+  'Para que a pessoa autorizou o tratamento, por exemplo o backup da chave de sigilo.';
+comment on column public.consentimentos.versao_texto is
+  'Versão do texto mostrado no momento do aceite.';
+
+create index consentimentos_user_id_idx on public.consentimentos (user_id);
+
+alter table public.consentimentos enable row level security;
+alter table public.consentimentos force row level security;
+
+revoke all on table public.consentimentos from public;
+revoke all on table public.consentimentos from anon;
+grant select, insert, update, delete on table public.consentimentos to authenticated;
+
+create policy consentimentos_select_own
+  on public.consentimentos
+  for select
+  to authenticated
+  using ((select auth.uid()) = user_id);
+
+create policy consentimentos_insert_own
+  on public.consentimentos
+  for insert
+  to authenticated
+  with check ((select auth.uid()) = user_id);
+
+create policy consentimentos_update_own
+  on public.consentimentos
+  for update
+  to authenticated
+  using ((select auth.uid()) = user_id)
+  with check ((select auth.uid()) = user_id);
+
+create policy consentimentos_delete_own
+  on public.consentimentos
   for delete
   to authenticated
   using ((select auth.uid()) = user_id);

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { fromBase64Url } from "@/lib/crypto/bytes";
 import { parseVoteAad } from "@/lib/crypto/envelopes";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
 import { createClient } from "@/lib/supabase/server";
@@ -9,6 +10,15 @@ export const dynamic = "force-dynamic";
 
 function json(body: { erro: string } | { id: string }, status: number) {
   return NextResponse.json(body, { status });
+}
+
+/** Hex com prefixo \\x, formato que o PostgREST grava em bytea. */
+function paraBytea(bytes: Uint8Array): string {
+  let hex = "\\x";
+  for (const byte of bytes) {
+    hex += byte.toString(16).padStart(2, "0");
+  }
+  return hex;
 }
 
 /**
@@ -54,14 +64,29 @@ export async function POST(request: Request) {
     return json({ erro: "O voto protegido não pertence a esta conta." }, 400);
   }
 
+  let ciphertext: string;
+  let iv: string;
+  let wrappedKey: string;
+  try {
+    const ivBytes = fromBase64Url(parsed.data.iv);
+    if (ivBytes.byteLength !== 12) {
+      return json({ erro: "Envelope de voto inválido." }, 400);
+    }
+    ciphertext = paraBytea(fromBase64Url(parsed.data.ct));
+    iv = paraBytea(ivBytes);
+    wrappedKey = paraBytea(fromBase64Url(parsed.data.wrapped_key));
+  } catch {
+    return json({ erro: "Envelope de voto inválido." }, 400);
+  }
+
   const { error: insertError } = await supabase.from("votos_cifrados").insert({
     id: aad.recordId,
     user_id: data.user.id,
     schema_version: parsed.data.v,
     alg: parsed.data.alg,
-    ciphertext: parsed.data.ct,
-    iv: parsed.data.iv,
-    wrapped_key: parsed.data.wrapped_key,
+    ciphertext,
+    iv,
+    wrapped_key: wrappedKey,
   });
 
   if (insertError) {
