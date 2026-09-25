@@ -8,6 +8,14 @@ const TRADUCOES: Record<string, string> = {
   obstrucao: "tentativa de atrasar a votação",
 };
 
+const ROTULOS_CARGO: Record<string, string> = {
+  presidente: "Presidente da República",
+  governador: "Governador",
+  senador: "Senador",
+  deputado_federal: "Deputado federal",
+  deputado_estadual: "Deputado estadual ou distrital",
+};
+
 function chave(termo: string): string {
   return termo
     .trim()
@@ -42,6 +50,11 @@ export function rotuloCivico(termo: string): string {
     return limpo;
   }
   return `${limpo} · ${traducao}`;
+}
+
+/** Nome do cargo em linguagem cidadã. Cargo desconhecido não vaza o código interno. */
+export function rotuloCargo(cargo: string): string {
+  return ROTULOS_CARGO[cargo] ?? "Cargo acompanhado";
 }
 
 /** Junta quebras de linha e espaços repetidos que a API entrega na ementa. */

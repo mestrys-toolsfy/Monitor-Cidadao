@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Field, TextInput } from "@/components/ui/field";
 import { createClientWith } from "@/lib/supabase/client";
+import { entradaContaSchema } from "@/lib/validators/onboarding";
 
 export function EntrarForm({ supabase }: { supabase: { url: string; key: string } }) {
   const router = useRouter();
@@ -16,12 +17,16 @@ export function EntrarForm({ supabase }: { supabase: { url: string; key: string 
   async function aoEnviar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const dados = new FormData(event.currentTarget);
-    const email = String(dados.get("email") ?? "").trim();
-    const senha = String(dados.get("senha") ?? "");
-    if (!email || senha.length < 6) {
-      setMensagem("Informe um e-mail válido e uma senha de conta com pelo menos 6 caracteres.");
+    const parsed = entradaContaSchema.safeParse({
+      email: dados.get("email"),
+      senha: dados.get("senha"),
+    });
+    event.currentTarget.reset();
+    if (!parsed.success) {
+      setMensagem(parsed.error.issues[0]?.message ?? "Confira o e-mail e a senha da conta.");
       return;
     }
+    const { email, senha } = parsed.data;
 
     setEnviando(true);
     setMensagem("");
@@ -45,7 +50,7 @@ export function EntrarForm({ supabase }: { supabase: { url: string; key: string 
   }
 
   return (
-    <form className="flex max-w-md flex-col gap-4" onSubmit={aoEnviar}>
+    <form className="flex max-w-md flex-col gap-4" action="javascript:void(0)" onSubmit={aoEnviar}>
       <p className="text-sm text-on-surface-variant">
         Esta senha abre a conta. Ela não é a senha de sigilo que protege o voto.
       </p>

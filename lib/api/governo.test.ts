@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { listarProposicoesRecentes } from "@/lib/api/camara";
+import { listarDeputados, listarProposicoesRecentes } from "@/lib/api/camara";
 import { listarMateriasRecentes } from "@/lib/api/senado";
 import { ErroApiGoverno } from "@/lib/api/http";
 import { rotuloCivico, traduzirTermoCivico } from "@/lib/civic/linguagem";
@@ -129,5 +129,34 @@ describe("dados públicos do Congresso", () => {
         tipoDocumento: "Projeto de Lei Ordinária",
       },
     ]);
+  });
+
+  it("busca deputados pelo nome na rota oficial da Câmara", async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const url = new URL(String(input));
+      expect(url.pathname).toBe("/api/v2/deputados");
+      expect(url.searchParams.get("nome")).toBe("lula");
+      expect(url.searchParams.get("itens")).toBe("10");
+      return jsonResponse({
+        dados: [
+          {
+            id: 220669,
+            uri: "https://dadosabertos.camara.leg.br/api/v2/deputados/220669",
+            nome: "Lula da Fonte",
+            siglaPartido: "PP",
+            uriPartido: "https://dadosabertos.camara.leg.br/api/v2/partidos/37903",
+            siglaUf: "PE",
+            idLegislatura: 57,
+            urlFoto: "https://www.camara.leg.br/internet/deputado/bandep/220669.jpg",
+            email: "dep.luladafonte@camara.leg.br",
+          },
+        ],
+      });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const itens = await listarDeputados("lula");
+    expect(itens).toEqual([{ id: 220669, nome: "Lula da Fonte", partido: "PP", uf: "PE" }]);
+    expect(JSON.stringify(itens)).not.toContain("email");
   });
 });

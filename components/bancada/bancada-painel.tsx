@@ -4,7 +4,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Field, SelectInput, TextInput } from "@/components/ui/field";
-import { descreverEscolha, montarPayloadBancada, ROTULOS_CARGO } from "@/lib/civic/escolha";
+import { montarPayloadBancada, ROTULOS_CARGO } from "@/lib/civic/escolha";
 import { publicarChavePublica } from "@/lib/civic/publicar-chave";
 import { encryptVote } from "@/lib/crypto/encrypt";
 import { SigiloCryptoError } from "@/lib/crypto/errors";
@@ -13,7 +13,7 @@ import { readSession, relock, unlockSession } from "@/lib/crypto/session";
 import { getOrCreateDeviceId, getPreference } from "@/lib/storage/kv";
 import { lerChaveSigilo, listarVotosLocais, salvarChaveSigilo, salvarVotoLocal } from "@/lib/storage/db";
 import { createClientWith } from "@/lib/supabase/client";
-import { CARGOS, type CargoBancada } from "@/lib/validators/bancada";
+import { CARGOS, escolhaManualSchema, type CargoBancada } from "@/lib/validators/bancada";
 import { listaDeputadosResumoSchema, type DeputadoResumo } from "@/lib/validators/governo";
 import { senhaSigiloSchema } from "@/lib/validators/sigilo";
 
@@ -37,6 +37,7 @@ export function BancadaPainel({ supabase }: { supabase: { url: string; key: stri
     lerChaveSigilo()
       .then((chave) => {
         if (!vivo) return;
+        document.documentElement.dataset.interativo = "sim";
         setEtapa(readSession() ? "registrar" : chave ? "abrir" : "criar");
       })
       .catch(() => {
@@ -44,6 +45,8 @@ export function BancadaPainel({ supabase }: { supabase: { url: string; key: stri
       });
     return () => {
       vivo = false;
+      relock();
+      delete document.documentElement.dataset.interativo;
     };
   }, []);
 
@@ -63,17 +66,20 @@ export function BancadaPainel({ supabase }: { supabase: { url: string; key: stri
           userId: aad.userId,
           recordId: aad.recordId,
         });
-        cargos.add(payload.cargo);
+        if ((CARGOS as readonly string[]).includes(payload.cargo)) {
+          cargos.add(payload.cargo);
+        }
       } catch {
         // Envelope de outra chave não entra na contagem.
       }
     }
-    setProgresso(cargos.size);
+    setProgresso(Math.min(cargos.size, CARGOS.length));
   }
 
   async function criarChave(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const senha = String(new FormData(event.currentTarget).get("senha_sigilo") ?? "");
+    event.currentTarget.reset();
     if (!senhaSigiloSchema.safeParse(senha).success) {
       setMensagem("A senha de sigilo precisa ter pelo menos 12 caracteres.");
       return;
@@ -110,7 +116,6 @@ export function BancadaPainel({ supabase }: { supabase: { url: string; key: stri
       setCodigo(material.recoveryCode);
       setEtapa("registrar");
       setMensagem("");
-      event.currentTarget.reset();
     } catch (error) {
       setMensagem(error instanceof SigiloCryptoError ? error.message : "Não foi possível criar a chave de sigilo.");
     }
@@ -119,6 +124,7 @@ export function BancadaPainel({ supabase }: { supabase: { url: string; key: stri
   async function abrirChave(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const senha = String(new FormData(event.currentTarget).get("senha_sigilo") ?? "");
+    event.currentTarget.reset();
     setMensagem("Abrindo a chave de sigilo…");
     try {
       const gravada = await lerChaveSigilo();
@@ -128,18 +134,27 @@ export function BancadaPainel({ supabase }: { supabase: { url: string; key: stri
       }
       const privateKey = await openPrivateKey(gravada.privkey_blob, senha);
       const publicKey = await importWrapPublicKey(gravada.privkey_blob.public_key_jwk);
+      const optIn = (await getPreference("opt_in_backup_v1")) === "true";
+      const sha = await publicarChavePublica({
+        supabase,
+        publicJwk: gravada.privkey_blob.public_key_jwk,
+        publicKeySha256: gravada.public_key_sha256,
+        backup: gravada.privkey_blob,
+        recoveryBackup: gravada.recovery_blob,
+        optInBackup: optIn,
+      });
       unlockSession({
         privateKey,
         publicKey,
         publicJwk: gravada.privkey_blob.public_key_jwk,
-        publicKeySha256: gravada.public_key_sha256,
+        publicKeySha256: sha,
       });
       setEtapa("registrar");
       setMensagem("");
-      event.currentTarget.reset();
       await atualizarProgresso();
-    } catch {
-      setMensagem("Não foi possível abrir o sigilo. Confira a senha de sigilo.");
+    } catch (error) {
+      relock();
+      setMensagem(error instanceof SigiloCryptoError ? error.message : "Não foi possível abrir o sigilo. Confira a senha de sigilo.");
     }
   }
 
@@ -166,6 +181,7 @@ export function BancadaPainel({ supabase }: { supabase: { url: string; key: stri
     }
     const dados = new FormData(event.currentTarget);
     let identificador = "branco-ou-nulo";
+    let nomeExibido = "Voto em branco ou nulo";
     if (!branco) {
       if (cargo === "deputado_federal") {
         if (!escolhido) {
@@ -173,15 +189,20 @@ export function BancadaPainel({ supabase }: { supabase: { url: string; key: stri
           return;
         }
         identificador = `camara:${escolhido.id}:${escolhido.nome}:${escolhido.partido}:${escolhido.uf}`;
+        nomeExibido = escolhido.nome;
       } else {
-        const nome = String(dados.get("nome") ?? "").trim();
-        const partido = String(dados.get("partido") ?? "").trim();
-        const uf = String(dados.get("uf") ?? "").trim();
-        if (!nome) {
-          setMensagem("Informe o nome de urna ou marque voto em branco ou nulo.");
+        const manual = escolhaManualSchema.safeParse({
+          nome: dados.get("nome"),
+          uf: dados.get("uf"),
+          partido: dados.get("partido") ?? "",
+          identificador: dados.get("identificador") ?? "",
+        });
+        if (!manual.success) {
+          setMensagem(manual.error.issues[0]?.message ?? "Confira os dados do cargo.");
           return;
         }
-        identificador = `manual:${nome}:${partido}:${uf}`;
+        identificador = `manual:${manual.data.nome}:${manual.data.partido}:${manual.data.uf}:${manual.data.identificador}`;
+        nomeExibido = manual.data.nome;
       }
     }
 
@@ -194,6 +215,7 @@ export function BancadaPainel({ supabase }: { supabase: { url: string; key: stri
     }
 
     try {
+      // A senha de sigilo não entra aqui: a sessão já tem a chave. Só o envelope segue.
       const envelope = await encryptVote({
         payload,
         publicKey: sessao.publicKey,
@@ -213,7 +235,7 @@ export function BancadaPainel({ supabase }: { supabase: { url: string; key: stri
           setMensagem("O voto ficou protegido neste navegador. A conta ainda não recebeu a cópia.");
         }
       }
-      setMemoria((atual) => [`${ROTULOS_CARGO[cargo]}: ${descreverEscolha(payload.politico_id)}`, ...atual]);
+      setMemoria((atual) => [`${ROTULOS_CARGO[cargo]}: ${nomeExibido}`, ...atual]);
       setMensagem("Voto protegido. O conteúdo não foi enviado em claro.");
       await atualizarProgresso();
     } catch (error) {
@@ -227,9 +249,9 @@ export function BancadaPainel({ supabase }: { supabase: { url: string; key: stri
 
   if (etapa === "criar" || etapa === "abrir") {
     return (
-      <form className="flex max-w-md flex-col gap-4" onSubmit={etapa === "criar" ? criarChave : abrirChave}>
+      <form className="flex max-w-md flex-col gap-4" action="javascript:void(0)" onSubmit={etapa === "criar" ? criarChave : abrirChave}>
         <Field label="Senha de sigilo">
-          <TextInput name="senha_sigilo" type="password" autoComplete={etapa === "criar" ? "new-password" : "current-password"} required />
+          <TextInput name="senha_sigilo" type="password" autoComplete="off" required />
         </Field>
         <p className="text-sm text-on-surface-variant">
           {etapa === "criar"
@@ -245,7 +267,7 @@ export function BancadaPainel({ supabase }: { supabase: { url: string; key: stri
   return (
     <div className="flex max-w-2xl flex-col gap-6">
       <p className="text-on-surface">
-        {progresso} de 5 preenchidos
+        {progresso} de 5
       </p>
       {codigo ? (
         <p className="rounded-lg border border-tertiary bg-tertiary-container px-4 py-3 text-on-tertiary-container">
@@ -319,6 +341,9 @@ export function BancadaPainel({ supabase }: { supabase: { url: string; key: stri
                   </option>
                 ))}
               </SelectInput>
+            </Field>
+            <Field label="Identificador textual">
+              <TextInput name="identificador" autoComplete="off" />
             </Field>
           </>
         ) : null}

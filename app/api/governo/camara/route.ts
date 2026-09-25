@@ -10,7 +10,7 @@ function jsonErro(mensagem: string, status: number) {
 
 /**
  * Proxy só de dado público da Câmara. Não recebe voto nem chave privada.
- * `recurso=proposicoes` (padrão) ou `recurso=votacoes`.
+ * `recurso=proposicoes` (padrão), `recurso=votacoes` ou `recurso=deputados`.
  */
 export async function GET(request: Request) {
   const url = new URL(request.url);

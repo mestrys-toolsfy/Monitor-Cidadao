@@ -22,5 +22,13 @@ export const bancadaEntradaSchema = z.object({
   turno: z.literal(TURNO_PADRAO),
 });
 
+/** Campos em claro só no formulário, antes de virar o identificador que será cifrado. */
+export const escolhaManualSchema = z.object({
+  nome: z.string().trim().min(2, { error: "Informe o nome." }),
+  uf: z.string().trim().regex(/^[A-Z]{2}$/, { error: "Informe a UF com duas letras." }),
+  partido: z.string().trim().max(30),
+  identificador: z.string().trim().max(80),
+});
+
 export type BancadaEntrada = z.infer<typeof bancadaEntradaSchema>;
 export type CargoBancada = z.infer<typeof cargoSchema>;

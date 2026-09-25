@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,13 @@ export function OnboardingForm({ supabase }: { supabase: { url: string; key: str
   const [mensagem, setMensagem] = useState("");
   const [enviando, setEnviando] = useState(false);
 
+  useEffect(() => {
+    document.documentElement.dataset.interativo = "sim";
+    return () => {
+      delete document.documentElement.dataset.interativo;
+    };
+  }, []);
+
   async function aoEnviar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const parsed = consentimentoOnboardingSchema.safeParse({ aceitaSigilo: aceita, optInBackup: optIn });
@@ -30,6 +37,11 @@ export function OnboardingForm({ supabase }: { supabase: { url: string; key: str
     await setPreference("consentimento_onboarding_v1", "true");
     await setPreference("opt_in_backup_v1", parsed.data.optInBackup ? "true" : "false");
 
+    /*
+      O aceite em preferência local não é o voto. A tabela `consentimentos`
+      aceita mais de uma finalidade. O backup cifrado só é registrado se a
+      pessoa marcar o segundo checkbox, junto com profiles.sigilo_opt_in.
+    */
     if (supabase) {
       const client = createClientWith(supabase.url, supabase.key);
       const { data } = await client.auth.getUser();
@@ -47,6 +59,13 @@ export function OnboardingForm({ supabase }: { supabase: { url: string; key: str
             versao_texto: VERSAO_TEXTO,
             aceito: true,
           });
+          await client
+            .from("profiles")
+            .update({
+              sigilo_opt_in: true,
+              sigilo_consent_at: new Date().toISOString(),
+            })
+            .eq("id", data.user.id);
         }
       }
     }
@@ -56,7 +75,7 @@ export function OnboardingForm({ supabase }: { supabase: { url: string; key: str
   }
 
   return (
-    <form className="flex max-w-2xl flex-col gap-4" onSubmit={aoEnviar}>
+    <form className="flex max-w-2xl flex-col gap-4" action="javascript:void(0)" onSubmit={aoEnviar}>
       <p className="rounded-lg border border-outline-variant bg-surface-container px-4 py-3 text-sm text-on-surface">
         Dado sensível · LGPD.{" "}
         <Link className="underline" href="/privacidade">

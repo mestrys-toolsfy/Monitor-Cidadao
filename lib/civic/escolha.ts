@@ -1,12 +1,13 @@
+import { rotuloCargo } from "@/lib/civic/linguagem";
 import { ANO_MANDATO, TURNO_PADRAO, bancadaEntradaSchema, type CargoBancada } from "@/lib/validators/bancada";
 import type { VotoPayload } from "@/types";
 
 export const ROTULOS_CARGO: Record<CargoBancada, string> = {
-  presidente: "Presidente da República",
-  governador: "Governador",
-  senador: "Senador",
-  deputado_federal: "Deputado Federal",
-  deputado_estadual: "Deputado Estadual ou Distrital",
+  presidente: rotuloCargo("presidente"),
+  governador: rotuloCargo("governador"),
+  senador: rotuloCargo("senador"),
+  deputado_federal: rotuloCargo("deputado_federal"),
+  deputado_estadual: rotuloCargo("deputado_estadual"),
 };
 
 /** Monta o payload em claro. Só existe na memória, antes de cifrar. */

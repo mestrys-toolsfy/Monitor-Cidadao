@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { POST } from "@/app/api/votos/route";
+import { toBase64Url } from "@/lib/crypto/bytes";
 import { montarPayloadBancada } from "@/lib/civic/escolha";
 import { bancadaEntradaSchema } from "@/lib/validators/bancada";
 import { consentimentoOnboardingSchema } from "@/lib/validators/onboarding";
@@ -21,7 +23,7 @@ describe("onboarding e bancada", () => {
     expect(resultado.success).toBe(false);
   });
 
-  it("o objeto enviado ao servidor não leva o voto em claro", () => {
+  it("o objeto enviado ao servidor não leva o voto em claro", async () => {
     const payload = montarPayloadBancada({
       cargo: "deputado_federal",
       brancoOuNulo: false,
@@ -32,13 +34,31 @@ describe("onboarding e bancada", () => {
     const envelope = {
       v: 1 as const,
       alg: "RSA-OAEP-256+A256GCM" as const,
-      ct: "Y3Q",
-      iv: "aXY",
-      wrapped_key: "d3JhcA",
+      ct: toBase64Url(new Uint8Array([1, 2, 3, 4])),
+      iv: toBase64Url(new Uint8Array(12)),
+      wrapped_key: toBase64Url(new Uint8Array([5, 6, 7, 8])),
       aad: "mc-voto-v1|usuario|registro",
     };
     expect(envelopeVotoSchema.safeParse(envelope).success).toBe(true);
+    expect(Object.keys(envelope)).not.toContain("politico_id");
     expect(contemCampoDeVotoEmClaro(envelope)).toBe(false);
     expect(contemCampoDeVotoEmClaro({ ...envelope, politico_id: payload.politico_id })).toBe(true);
+
+    const pedido = new Request("http://localhost/api/votos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(envelope),
+    });
+    const aceito = await POST(pedido);
+    expect(aceito.status).not.toBe(400);
+
+    const recusado = await POST(
+      new Request("http://localhost/api/votos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...envelope, politico_id: payload.politico_id }),
+      }),
+    );
+    expect(recusado.status).toBe(400);
   });
 });
