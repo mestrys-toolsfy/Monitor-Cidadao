@@ -2,11 +2,14 @@ import { buscarJson, ErroApiGoverno } from "@/lib/api/http";
 import { limparTextoPublico } from "@/lib/civic/linguagem";
 import {
   exigirSchema,
+  detalheVotacaoSchema,
   respostaDeputadosCamaraSchema,
   respostaProposicoesCamaraSchema,
   respostaVotacoesCamaraSchema,
+  respostaVotosNominaisSchema,
   type DeputadoResumo,
   type ItemCongresso,
+  type VotacaoNominal,
   type VotacaoPlenario,
 } from "@/lib/validators/governo";
 
@@ -123,6 +126,62 @@ export async function listarDeputados(nome: string): Promise<DeputadoResumo[]> {
     partido: item.siglaPartido ?? "sem partido",
     uf: item.siglaUf ?? "--",
   }));
+}
+
+/**
+ * Votação nominal de referência quando o plenário recente só tem voto simbólico.
+ * Conferida em 2026-09-25: PEC 45/2019, id 2196833-307, 452 votos individuais.
+ */
+const VOTACAO_NOMINAL_REFERENCIA = "2196833-307";
+
+async function lerVotosNominais(idVotacao: string): Promise<VotacaoNominal | null> {
+  const votosUrl = `${BASE}/votacoes/${encodeURIComponent(idVotacao)}/votos`;
+  const detalheUrl = `${BASE}/votacoes/${encodeURIComponent(idVotacao)}`;
+  const [votosBody, detalheBody] = await Promise.all([
+    buscarJson(votosUrl, "camara"),
+    buscarJson(detalheUrl, "camara"),
+  ]);
+  const votos = exigirSchema(respostaVotosNominaisSchema, votosBody, "camara");
+  if (votos.dados.length === 0) return null;
+  const detalhe = exigirSchema(detalheVotacaoSchema, detalheBody, "camara");
+  return {
+    id: detalhe.dados.id,
+    data: detalhe.dados.data,
+    descricao: limparTextoPublico(detalhe.dados.descricao),
+    fonteUrl: `https://www.camara.leg.br/internet/votacao/detalheVotacao.asp?idVotacao=${encodeURIComponent(detalhe.dados.id)}`,
+    votos: votos.dados.map((voto) => ({
+      deputadoId: voto.deputado_.id,
+      nome: voto.deputado_.nome,
+      partido: voto.deputado_.siglaPartido ?? "sem partido",
+      uf: voto.deputado_.siglaUf ?? "--",
+      tipoVoto: voto.tipoVoto,
+    })),
+  };
+}
+
+/**
+ * Até três votações com voto individual. O plenário recente pode ser só simbólico;
+ * nesse caso entra a votação de referência, que tem lista nominal publicada.
+ * A lista é pública e não recebe o voto secreto do cidadão.
+ */
+export async function listarMatrizPublica(limite = 3): Promise<VotacaoNominal[]> {
+  const teto = Math.min(3, Math.max(1, Math.trunc(limite)));
+  const recentes = await listarVotacoesPlenario(12);
+  const matriz: VotacaoNominal[] = [];
+  for (const item of recentes) {
+    if (matriz.length >= teto) break;
+    try {
+      const nominal = await lerVotosNominais(item.id);
+      if (nominal) matriz.push(nominal);
+    } catch {
+      // Uma votação inacessível não esvazia as demais.
+    }
+  }
+  if (matriz.length === 0) {
+    const referencia = await lerVotosNominais(VOTACAO_NOMINAL_REFERENCIA);
+    if (referencia) matriz.push(referencia);
+  }
+  return matriz;
 }
 
 /** Votações nominais e simbólicas mais recentes do plenário. */

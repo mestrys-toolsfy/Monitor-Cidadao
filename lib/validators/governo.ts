@@ -85,6 +85,49 @@ export const listaVotacoesPlenarioSchema = z.array(votacaoPlenarioSchema);
 
 export type VotacaoPlenario = z.infer<typeof votacaoPlenarioSchema>;
 
+/** Voto individual publicado em `GET /votacoes/{id}/votos`. */
+export const votoNominalBrutoSchema = z.object({
+  tipoVoto: z.string().min(1),
+  deputado_: z.object({
+    id: z.number().int(),
+    nome: z.string().min(1),
+    siglaPartido: z.string().nullable().optional(),
+    siglaUf: z.string().nullable().optional(),
+  }),
+});
+
+export const respostaVotosNominaisSchema = z.object({
+  dados: z.array(votoNominalBrutoSchema),
+});
+
+export const detalheVotacaoSchema = z.object({
+  dados: z.object({
+    id: z.string().min(1),
+    data: z.string().min(1),
+    descricao: z.string(),
+  }),
+});
+
+export const votoNaMatrizSchema = z.object({
+  deputadoId: z.number().int(),
+  nome: z.string().min(1),
+  partido: z.string().min(1),
+  uf: z.string().min(2),
+  tipoVoto: z.string().min(1),
+});
+
+export const votacaoNominalSchema = z.object({
+  id: z.string().min(1),
+  data: z.string().min(1),
+  descricao: z.string(),
+  fonteUrl: z.url(),
+  votos: z.array(votoNaMatrizSchema),
+});
+
+export const listaVotacoesNominaisSchema = z.array(votacaoNominalSchema);
+
+export type VotacaoNominal = z.infer<typeof votacaoNominalSchema>;
+
 /** Processo resumido do Senado (`GET /dadosabertos/processo`). */
 export const processoSenadoSchema = z.object({
   id: z.number().int(),

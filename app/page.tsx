@@ -11,6 +11,9 @@ export default function HomePage() {
       <Link className="inline-flex min-h-12 items-center font-semibold text-secondary underline" href="/onboarding">
         Começar pelo compromisso de sigilo
       </Link>
+      <Link className="inline-flex min-h-12 items-center font-semibold text-secondary underline" href="/comparador">
+        Comparar como eles votaram
+      </Link>
       <Link className="inline-flex min-h-12 items-center font-semibold text-secondary underline" href="/linha-do-tempo">
         Linha do tempo do Congresso
       </Link>

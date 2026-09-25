@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Landmark, LayoutDashboard, LogIn, ScrollText } from "lucide-react";
+import { Columns3, Home, Landmark, LayoutDashboard, LogIn, ScrollText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const DESTINOS = [
@@ -10,6 +10,7 @@ const DESTINOS = [
   { href: "/linha-do-tempo", rotulo: "Linha do tempo", icone: ScrollText },
   { href: "/bancada", rotulo: "Bancada", icone: Landmark },
   { href: "/painel", rotulo: "Painel", icone: LayoutDashboard },
+  { href: "/comparador", rotulo: "Comparador", icone: Columns3 },
   { href: "/entrar", rotulo: "Entrar", icone: LogIn },
 ] as const;
 

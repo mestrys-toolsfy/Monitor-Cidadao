@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
-import { listarDeputados, listarProposicoesRecentes, listarVotacoesPlenario } from "@/lib/api/camara";
-import { listaCongressoSchema, listaDeputadosResumoSchema, listaVotacoesPlenarioSchema } from "@/lib/validators/governo";
+import { listarDeputados, listarMatrizPublica, listarProposicoesRecentes, listarVotacoesPlenario } from "@/lib/api/camara";
+import {
+  listaCongressoSchema,
+  listaDeputadosResumoSchema,
+  listaVotacoesNominaisSchema,
+  listaVotacoesPlenarioSchema,
+} from "@/lib/validators/governo";
 
 export const revalidate = 900;
 
@@ -15,8 +20,20 @@ function jsonErro(mensagem: string, status: number) {
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const recurso = url.searchParams.get("recurso") ?? "proposicoes";
-  if (recurso !== "proposicoes" && recurso !== "votacoes" && recurso !== "deputados") {
+  if (recurso !== "proposicoes" && recurso !== "votacoes" && recurso !== "deputados" && recurso !== "comparativo") {
     return jsonErro("Consulta inválida.", 400);
+  }
+
+  if (recurso === "comparativo") {
+    try {
+      const parsed = listaVotacoesNominaisSchema.safeParse(await listarMatrizPublica(3));
+      if (!parsed.success) {
+        return jsonErro("A resposta da Câmara veio em um formato inesperado.", 502);
+      }
+      return NextResponse.json({ itens: parsed.data });
+    } catch {
+      return jsonErro("Não foi possível consultar a Câmara dos Deputados agora.", 502);
+    }
   }
 
   if (recurso === "deputados") {
