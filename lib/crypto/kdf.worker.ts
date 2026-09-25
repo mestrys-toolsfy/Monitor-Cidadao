@@ -4,7 +4,7 @@
  * A senha chega na mensagem e não é reenviada. A resposta leva só a KEK
  * (não extraível) ou uma falha sem detalhe.
  */
-import { deriveKek } from "./kdf";
+import { deriveKek } from "./kdf-core";
 
 interface DeriveWorkerRequest {
   id: string;
