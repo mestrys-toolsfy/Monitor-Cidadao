@@ -3,7 +3,10 @@
 import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Chip, StatusChip } from "@/components/ui/chip";
 import { Field, SelectInput, TextInput } from "@/components/ui/field";
+import { cn } from "@/lib/utils";
 import { montarPayloadBancada, ROTULOS_CARGO } from "@/lib/civic/escolha";
 import { publicarChavePublica } from "@/lib/civic/publicar-chave";
 import { encryptVote } from "@/lib/crypto/encrypt";
@@ -244,62 +247,63 @@ export function BancadaPainel({ supabase }: { supabase: { url: string; key: stri
   }
 
   if (etapa === "carregando") {
-    return <p className="text-on-surface">Carregando o sigilo deste navegador…</p>;
+    return <p className="text-body-lg text-on-surface">Carregando o sigilo deste navegador…</p>;
   }
 
   if (etapa === "criar" || etapa === "abrir") {
     return (
-      <form className="flex max-w-md flex-col gap-4" action="javascript:void(0)" onSubmit={etapa === "criar" ? criarChave : abrirChave}>
+      <form className="flex max-w-md flex-col gap-md" action="javascript:void(0)" onSubmit={etapa === "criar" ? criarChave : abrirChave}>
         <Field label="Senha de sigilo">
           <TextInput name="senha_sigilo" type="password" autoComplete="off" required />
         </Field>
-        <p className="text-sm text-on-surface-variant">
+        <p className="text-body-md text-on-surface-variant">
           {etapa === "criar"
             ? "Crie uma senha só para o voto, diferente da senha da conta. Ela não é enviada ao serviço."
             : "Digite a senha de sigilo para continuar o cadastro neste aparelho."}
         </p>
-        {mensagem ? <p className="text-sm text-on-surface">{mensagem}</p> : null}
+        {mensagem ? <p className="text-body-md text-on-surface">{mensagem}</p> : null}
         <Button type="submit">{etapa === "criar" ? "Criar chave de sigilo" : "Abrir chave de sigilo"}</Button>
       </form>
     );
   }
 
   return (
-    <div className="flex max-w-2xl flex-col gap-6">
-      <p className="text-on-surface">
-        {progresso} de 5
-      </p>
+    <div className="flex max-w-2xl flex-col gap-lg">
+      <StatusChip tone="primary">{progresso} de 5 preenchidos</StatusChip>
       {codigo ? (
-        <p className="rounded-lg border border-tertiary bg-tertiary-container px-4 py-3 text-on-tertiary-container">
+        <p className="rounded-lg border border-tertiary bg-tertiary-container px-4 py-3 text-body-md text-on-tertiary-container" role="status">
           Guarde este código de recuperação. Ele aparece uma vez: {codigo}
         </p>
       ) : null}
-      <p className="rounded-lg border border-outline-variant bg-surface-container px-4 py-3 text-sm">
+      <Card className="text-body-md">
         Dado sensível · LGPD.{" "}
-        <Link className="underline" href="/privacidade">
+        <Link className="inline-flex min-h-12 items-center underline" href="/privacidade">
           Política de privacidade
         </Link>
-      </p>
-      <form className="flex flex-col gap-4" onSubmit={buscarDeputados}>
-        <Field label="Cargo">
-          <SelectInput
-            value={cargo}
-            onChange={(event) => {
-              setCargo(event.target.value as CargoBancada);
-              setEscolhido(null);
-            }}
-          >
+      </Card>
+      <form className="flex flex-col gap-md" onSubmit={buscarDeputados}>
+        <div className="flex flex-col gap-sm">
+          <span className="text-label-lg text-on-surface" id="rotulo-cargo">
+            Cargo
+          </span>
+          <div className="flex flex-wrap gap-sm" role="group" aria-labelledby="rotulo-cargo">
             {CARGOS.map((item) => (
-              <option key={item} value={item}>
+              <Chip
+                key={item}
+                selected={cargo === item}
+                onClick={() => {
+                  setCargo(item);
+                  setEscolhido(null);
+                }}
+              >
                 {ROTULOS_CARGO[item]}
-              </option>
+              </Chip>
             ))}
-          </SelectInput>
-        </Field>
-        <label className="flex min-h-12 items-center gap-3">
-          <input type="checkbox" className="size-5" checked={branco} onChange={(event) => setBranco(event.target.checked)} />
+          </div>
+        </div>
+        <Chip selected={branco} onClick={() => setBranco((atual) => !atual)}>
           Voto em branco ou nulo
-        </label>
+        </Chip>
         {cargo === "deputado_federal" && !branco ? (
           <>
             <Field label="Nome de urna, partido ou número">
@@ -308,23 +312,32 @@ export function BancadaPainel({ supabase }: { supabase: { url: string; key: stri
             <Button type="submit" variant="outlined">
               Buscar na Câmara
             </Button>
-            <ul className="flex flex-col gap-2">
-              {deputados.map((pessoa) => (
-                <li key={pessoa.id}>
-                  <button
-                    type="button"
-                    className="inline-flex min-h-12 w-full items-center rounded-lg border border-outline px-3 text-left"
-                    onClick={() => setEscolhido(pessoa)}
-                  >
-                    {pessoa.nome} · {pessoa.partido}-{pessoa.uf}
-                  </button>
-                </li>
-              ))}
+            <ul className="flex flex-col gap-sm">
+              {deputados.map((pessoa) => {
+                const escolhida = escolhido?.id === pessoa.id;
+                return (
+                  <li key={pessoa.id}>
+                    <button
+                      type="button"
+                      aria-pressed={escolhida}
+                      className={cn(
+                        "inline-flex min-h-12 w-full items-center rounded-xl border border-outline px-4 text-left text-body-md",
+                        escolhida
+                          ? "bg-secondary-container text-on-secondary-container"
+                          : "bg-surface-container-lowest text-on-surface",
+                      )}
+                      onClick={() => setEscolhido(pessoa)}
+                    >
+                      {pessoa.nome} · {pessoa.partido}-{pessoa.uf}
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
           </>
         ) : null}
       </form>
-      <form className="flex flex-col gap-4" onSubmit={registrar}>
+      <form className="flex flex-col gap-md" onSubmit={registrar}>
         {cargo !== "deputado_federal" && !branco ? (
           <>
             <Field label="Nome">
@@ -347,8 +360,8 @@ export function BancadaPainel({ supabase }: { supabase: { url: string; key: stri
             </Field>
           </>
         ) : null}
-        {escolhido ? <p>Selecionado nesta tela: {escolhido.nome}</p> : null}
-        {mensagem ? <p className="text-sm text-on-surface">{mensagem}</p> : null}
+        {escolhido ? <StatusChip>Selecionado nesta tela: {escolhido.nome}</StatusChip> : null}
+        {mensagem ? <p className="text-body-md text-on-surface">{mensagem}</p> : null}
         <Button type="submit">Proteger esta escolha</Button>
         <Button
           type="button"
@@ -362,7 +375,7 @@ export function BancadaPainel({ supabase }: { supabase: { url: string; key: stri
         </Button>
       </form>
       {memoria.length > 0 ? (
-        <ul className="flex flex-col gap-2 text-on-surface">
+        <ul className="flex flex-col gap-sm text-body-lg text-on-surface">
           {memoria.map((linha) => (
             <li key={linha}>{linha}</li>
           ))}

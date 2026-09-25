@@ -50,8 +50,8 @@ export function EntrarForm({ supabase }: { supabase: { url: string; key: string 
   }
 
   return (
-    <form className="flex max-w-md flex-col gap-4" action="javascript:void(0)" onSubmit={aoEnviar}>
-      <p className="text-sm text-on-surface-variant">
+    <form className="flex max-w-md flex-col gap-md" action="javascript:void(0)" onSubmit={aoEnviar}>
+      <p className="text-body-md text-on-surface-variant">
         Esta senha abre a conta. Ela não é a senha de sigilo que protege o voto.
       </p>
       <Field label="E-mail">
@@ -60,18 +60,14 @@ export function EntrarForm({ supabase }: { supabase: { url: string; key: string 
       <Field label="Senha da conta">
         <TextInput name="senha" type="password" autoComplete={modo === "criar" ? "new-password" : "current-password"} required />
       </Field>
-      {mensagem ? <p className="text-sm text-on-surface">{mensagem}</p> : null}
+      {mensagem ? <p className="text-body-md text-on-surface">{mensagem}</p> : null}
       <Button type="submit" disabled={enviando}>
         {modo === "criar" ? "Criar conta" : "Entrar"}
       </Button>
-      <button
-        type="button"
-        className="inline-flex min-h-12 items-center text-left text-sm font-semibold text-secondary underline"
-        onClick={() => setModo(modo === "criar" ? "entrar" : "criar")}
-      >
+      <Button type="button" variant="outlined" onClick={() => setModo(modo === "criar" ? "entrar" : "criar")}>
         {modo === "criar" ? "Já tenho conta" : "Criar uma conta"}
-      </button>
-      <Link className="inline-flex min-h-12 items-center text-sm underline" href="/privacidade">
+      </Button>
+      <Link className="inline-flex min-h-12 items-center text-label-lg text-secondary underline" href="/privacidade">
         Como o voto é protegido
       </Link>
     </form>

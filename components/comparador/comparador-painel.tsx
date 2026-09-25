@@ -3,7 +3,9 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Field, TextInput } from "@/components/ui/field";
+import { cn } from "@/lib/utils";
 import { cruzarBancada, deputadoDaEscolha, type LinhaComparador } from "@/lib/civic/comparador";
 import { decryptVote } from "@/lib/crypto/decrypt";
 import { parseVoteAad } from "@/lib/crypto/envelopes";
@@ -89,30 +91,30 @@ export function ComparadorPainel() {
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      <p className="rounded-lg border border-outline-variant bg-surface-container px-4 py-3 text-sm">
+    <div className="flex flex-col gap-md">
+      <Card className="text-body-md">
         Dado sensível · LGPD. A comparação acontece neste navegador. A consulta à Câmara pede só a lista pública, sem o
         seu voto.{" "}
-        <Link className="underline" href="/privacidade">
+        <Link className="inline-flex min-h-12 items-center underline" href="/privacidade">
           Política de privacidade
         </Link>
-      </p>
-      <form className="flex max-w-md flex-col gap-4" onSubmit={comparar}>
+      </Card>
+      <form className="flex max-w-md flex-col gap-md" onSubmit={comparar}>
         <Field label="Senha de sigilo">
           <TextInput name="senha_sigilo" type="password" autoComplete="current-password" required />
         </Field>
         <Button type="submit">Comparar votações</Button>
       </form>
-      {mensagem ? <p className="text-sm text-on-surface">{mensagem}</p> : null}
+      {mensagem ? <p className="text-body-md text-on-surface">{mensagem}</p> : null}
       {linhas.length > 0 ? (
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px] border-collapse text-left text-sm">
+          <table className="w-full min-w-[640px] border-collapse text-left text-body-md">
             <caption className="sr-only">Como os deputados da bancada votaram em plenário</caption>
             <thead>
               <tr>
-                <th className="min-h-12 px-3 py-3 font-semibold">Votação</th>
+                <th className="px-3 py-3 text-label-lg">Votação</th>
                 {colunas.map((coluna) => (
-                  <th key={coluna} className="px-3 py-3 font-semibold">
+                  <th key={coluna} className="px-3 py-3 text-label-lg">
                     {coluna}
                   </th>
                 ))}
@@ -122,14 +124,14 @@ export function ComparadorPainel() {
               {linhas.map((linha) => (
                 <tr key={linha.id} className="border-t border-outline-variant">
                   <td className="px-3 py-3 align-top">
-                    <p>{linha.titulo}</p>
-                    <a className="inline-flex min-h-12 items-center underline" href={linha.fonteUrl}>
+                    <p className="text-body-lg">{linha.titulo}</p>
+                    <a className="inline-flex min-h-12 items-center text-label-lg text-secondary underline" href={linha.fonteUrl}>
                       Ficha oficial · {linha.data}
                     </a>
                   </td>
                   {linha.celulas.map((celula) => (
                     <td key={`${linha.id}-${celula.deputadoId}`} className="px-3 py-3 align-top">
-                      <span className={`inline-flex min-h-12 items-center rounded-lg px-3 ${TOM[celula.tom]}`}>
+                      <span className={cn("inline-flex min-h-12 items-center rounded-full px-4 text-label-lg", TOM[celula.tom])}>
                         {celula.rotulo}
                       </span>
                     </td>

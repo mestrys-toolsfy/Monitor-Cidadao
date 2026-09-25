@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { PageMain } from "@/components/layout/page-main";
+import { Card } from "@/components/ui/card";
+import { StatusChip } from "@/components/ui/chip";
 import { listarProposicoesRecentes } from "@/lib/api/camara";
 import { listarMateriasRecentes } from "@/lib/api/senado";
 import { limparTextoPublico, rotuloCivico, traduzirTermoCivico } from "@/lib/civic/linguagem";
@@ -72,43 +75,43 @@ function BlocoCasa({
   bloco: Bloco;
 }) {
   return (
-    <section className="flex flex-col gap-4">
-      <div className="flex flex-col gap-2">
-        <h2 className="text-2xl font-semibold leading-8 text-on-surface">{titulo}</h2>
-        <p className="max-w-2xl text-base leading-6 text-on-surface">{intro}</p>
+    <section className="flex flex-col gap-md">
+      <div className="flex flex-col gap-sm">
+        <h2 className="text-headline-sm text-on-surface">{titulo}</h2>
+        <p className="max-w-2xl text-body-lg text-on-surface">{intro}</p>
       </div>
       {bloco.erro ? (
-        <p className="rounded-lg bg-error-container px-4 py-3 text-on-error-container" role="alert">
+        <p className="rounded bg-error-container px-4 py-3 text-body-md text-on-error-container" role="alert">
           {erro}
         </p>
       ) : null}
       {!bloco.erro && bloco.itens.length === 0 ? (
-        <p className="text-base leading-6 text-on-surface-variant" role="status">
+        <p className="text-body-lg text-on-surface-variant" role="status">
           {vazio}
         </p>
       ) : null}
       {bloco.itens.length > 0 ? (
-        <ul className="flex flex-col gap-4">
+        <ul className="flex flex-col gap-md">
           {bloco.itens.map((item) => {
             const data = dataPt(item.data);
             return (
               <li key={`${item.casa}-${item.id}`}>
-                <article className="flex flex-col gap-2 rounded-xl border border-outline-variant bg-surface-container-low p-4">
-                  <h3 className="text-lg font-semibold leading-7 text-on-surface">{rotuloItem(item)}</h3>
-                  <p className="text-sm leading-5 text-on-surface-variant">
+                <Card as="article" className="flex flex-col gap-sm">
+                  <h3 className="text-headline-sm text-on-surface">{rotuloItem(item)}</h3>
+                  <p className="text-body-md text-on-surface-variant">
                     {item.titulo}
                     {data ? ` · ${data}` : ""}
                   </p>
-                  <p className="text-base leading-6 text-on-surface">{ementaCurta(item.ementa)}</p>
+                  <p className="text-body-lg text-on-surface">{ementaCurta(item.ementa)}</p>
                   <a
-                    className="inline-flex min-h-12 items-center font-semibold text-secondary underline"
+                    className="inline-flex min-h-12 items-center text-label-lg text-secondary underline"
                     href={item.fonteUrl}
                     rel="noreferrer"
                     target="_blank"
                   >
                     {origem}
                   </a>
-                </article>
+                </Card>
               </li>
             );
           })}
@@ -125,17 +128,15 @@ export default async function LinhaDoTempoPage() {
   ]);
 
   return (
-    <main className="mx-auto flex w-full max-w-[1200px] flex-1 flex-col gap-8 px-4 py-8 md:px-8">
-      <div className="flex flex-col gap-4">
-        <p className="inline-flex min-h-12 w-fit items-center rounded-lg bg-secondary-container px-3 text-sm font-semibold text-on-secondary-container">
-          Dado público · Lei de Acesso à Informação
-        </p>
-        <h1 className="text-[2rem] font-semibold leading-10 text-on-surface">Linha do tempo</h1>
-        <p className="max-w-2xl text-base leading-6 text-on-surface">
+    <PageMain className="gap-xl">
+      <div className="flex flex-col gap-md">
+        <StatusChip>Dado público · Lei de Acesso à Informação</StatusChip>
+        <h1 className="text-headline-lg text-on-surface">Linha do tempo</h1>
+        <p className="max-w-2xl text-body-lg text-on-surface">
           Aqui estão propostas públicas da Câmara e do Senado. O voto que você protege no navegador não aparece nesta
           página.
         </p>
-        <Link className="inline-flex min-h-12 items-center font-semibold text-secondary underline" href="/">
+        <Link className="inline-flex min-h-12 items-center text-label-lg text-secondary underline" href="/">
           Voltar ao início
         </Link>
       </div>
@@ -158,14 +159,16 @@ export default async function LinhaDoTempoPage() {
         vazio="Nenhuma matéria recente do Senado apareceu nesta consulta."
       />
 
-      <section className="flex flex-col gap-3">
-        <h2 className="text-2xl font-semibold leading-8 text-on-surface">Palavras da Câmara e do Senado</h2>
-        <ul className="flex flex-col gap-1 text-base leading-6 text-on-surface">
+      <section className="flex flex-col gap-sm">
+        <h2 className="text-headline-sm text-on-surface">Palavras da Câmara e do Senado</h2>
+        <ul className="flex flex-wrap gap-sm">
           {GLOSSARIO.map((termo) => (
-            <li key={termo}>{rotuloCivico(termo)}</li>
+            <li key={termo}>
+              <StatusChip tone="neutro">{rotuloCivico(termo)}</StatusChip>
+            </li>
           ))}
         </ul>
       </section>
-    </main>
+    </PageMain>
   );
 }

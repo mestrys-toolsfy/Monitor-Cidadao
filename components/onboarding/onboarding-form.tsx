@@ -3,6 +3,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { setPreference } from "@/lib/storage/kv";
 import { createClientWith } from "@/lib/supabase/client";
@@ -75,34 +76,42 @@ export function OnboardingForm({ supabase }: { supabase: { url: string; key: str
   }
 
   return (
-    <form className="flex max-w-2xl flex-col gap-4" action="javascript:void(0)" onSubmit={aoEnviar}>
-      <p className="rounded-lg border border-outline-variant bg-surface-container px-4 py-3 text-sm text-on-surface">
+    <form className="flex max-w-2xl flex-col gap-md" action="javascript:void(0)" onSubmit={aoEnviar}>
+      <Card className="text-body-md">
         Dado sensível · LGPD.{" "}
-        <Link className="underline" href="/privacidade">
+        <Link className="inline-flex min-h-12 items-center underline" href="/privacidade">
           Leia como o voto é protegido
         </Link>
         .
-      </p>
-      <label className="flex min-h-12 items-start gap-3 text-on-surface">
-        <input
-          className="mt-1 size-5"
-          type="checkbox"
-          checked={aceita}
-          onChange={(event) => setAceita(event.target.checked)}
-        />
+      </Card>
+      <label className="flex min-h-12 items-start gap-sm text-body-lg text-on-surface">
+        <span className="inline-flex size-12 shrink-0 items-center justify-center">
+          <input
+            className="size-5"
+            type="checkbox"
+            checked={aceita}
+            onChange={(event) => setAceita(event.target.checked)}
+          />
+        </span>
         <span>
           Aceito que minha escolha de voto é um dado sensível, cifrado neste navegador. A plataforma não lê o
           conteúdo. Se eu esquecer a senha de sigilo e o código de recuperação, os votos ficam ilegíveis.
         </span>
       </label>
-      <label className="flex min-h-12 items-start gap-3 text-on-surface">
-        <input className="mt-1 size-5" type="checkbox" checked={optIn} onChange={(event) => setOptIn(event.target.checked)} />
+      <label className="flex min-h-12 items-start gap-sm text-body-lg text-on-surface">
+        <span className="inline-flex size-12 shrink-0 items-center justify-center">
+          <input className="size-5" type="checkbox" checked={optIn} onChange={(event) => setOptIn(event.target.checked)} />
+        </span>
         <span>
           Quero guardar neste serviço uma cópia cifrada da chave, para abrir a bancada em outro aparelho com a mesma
           senha de sigilo. Sem esta marca, a cópia fica só neste navegador.
         </span>
       </label>
-      {mensagem ? <p className="text-sm text-error">{mensagem}</p> : null}
+      {mensagem ? (
+        <p className="text-body-md text-error" role="alert">
+          {mensagem}
+        </p>
+      ) : null}
       <Button type="submit" disabled={!aceita || enviando}>
         Continuar para a bancada
       </Button>
