@@ -25,8 +25,10 @@ alwaysApply: true
   analytics, cache, Sentry, Vercel logs).
 - Cifrar payload de voto com AES-GCM 256 + envelope RSA-OAEP 2048 
   ANTES de qualquer envio ao servidor.
-- Chave privada RSA vive APENAS no IndexedDB do navegador, cifrada com 
-  chave derivada da senha do usuário (PBKDF2).
+- A chave privada RSA em claro vive APENAS no IndexedDB do navegador,
+  cifrada com chave derivada da senha de sigilo (PBKDF2). Cópia cifrada
+  (blob AES-GCM) só vai ao Supabase com opt-in explícito. A senha de
+  sigilo nunca é enviada ao servidor.
 - Supabase RLS obrigatória em TODAS as tabelas.
 - NUNCA logar conteúdo sensível. Se precisar debugar, logar apenas IDs.
 
