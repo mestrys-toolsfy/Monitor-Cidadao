@@ -4,6 +4,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Field, TextInput } from "@/components/ui/field";
 import { descreverEscolha } from "@/lib/civic/escolha";
 import { rotuloCargo } from "@/lib/civic/linguagem";
@@ -106,36 +107,38 @@ export function PainelCliente({ supabase }: { supabase: { url: string; key: stri
   }
 
   return (
-    <div className="flex max-w-2xl flex-col gap-4">
+    <div className="flex max-w-2xl flex-col gap-space-md">
       <Link
-        className="inline-flex min-h-12 w-fit items-center gap-2 rounded-full border border-tertiary bg-tertiary-container px-4 text-sm font-semibold text-on-tertiary-container"
+        className="inline-flex min-h-12 w-fit items-center gap-2 rounded-full border border-tertiary bg-tertiary-container px-4 text-label-lg text-on-tertiary-container"
         href="/privacidade"
       >
-        <ShieldCheck aria-label="Dado sensível · LGPD" className="size-5" />
+        <ShieldCheck aria-hidden="true" className="size-6" />
         Dado sensível · LGPD
       </Link>
-      <form className="flex flex-col gap-4" action="javascript:void(0)" onSubmit={mostrar}>
+      <form className="flex flex-col gap-space-md" action="javascript:void(0)" onSubmit={mostrar}>
         <Field label="Senha de sigilo">
           <TextInput name="senha_sigilo" type="password" autoComplete="off" required />
         </Field>
         <Button type="submit">Mostrar a bancada</Button>
       </form>
       {mensagem ? (
-        <p className="text-sm text-on-surface" role="alert">
+        <p className="text-body-md text-on-surface" role="alert">
           {mensagem}
         </p>
       ) : null}
       {aberto ? (
-        <ul className="flex flex-col gap-3">
+        <ul className="flex flex-col gap-space-sm">
           {linhas.map((linha) => (
-            <li key={linha.cargo} className="rounded-lg border border-outline-variant bg-surface-container-lowest px-4 py-3">
-              <p className="font-semibold">{linha.cargo}</p>
-              <p>{linha.escolha}</p>
+            <li key={linha.cargo}>
+              <Card>
+                <p className="text-label-lg">{linha.cargo}</p>
+                <p className="text-body-lg">{linha.escolha}</p>
+              </Card>
             </li>
           ))}
         </ul>
       ) : null}
-      <Link className="inline-flex min-h-12 items-center font-semibold text-secondary underline" href="/linha-do-tempo">
+      <Link className="inline-flex min-h-12 items-center text-label-lg text-secondary underline" href="/linha-do-tempo">
         Ver a linha do tempo do Congresso
       </Link>
       <Button

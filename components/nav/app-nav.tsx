@@ -22,9 +22,11 @@ function ativo(pathname: string, href: string): boolean {
 function ItemNav({
   destino,
   pathname,
+  compacto,
 }: {
   destino: (typeof DESTINOS)[number];
   pathname: string;
+  compacto: boolean;
 }) {
   const Icone = destino.icone;
   const ligado = ativo(pathname, destino.href);
@@ -33,12 +35,27 @@ function ItemNav({
       href={destino.href}
       aria-current={ligado ? "page" : undefined}
       className={cn(
-        "inline-flex min-h-12 min-w-12 flex-1 flex-col items-center justify-center gap-1 px-2 text-xs font-medium text-on-surface md:flex-row md:justify-start md:gap-3 md:px-4 md:text-sm",
-        ligado && "bg-primary-container text-on-primary-container",
+        "inline-flex min-h-12 min-w-12 flex-col items-center justify-center gap-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+        compacto ? "h-full flex-1 px-0.5" : "w-full px-1 py-1",
       )}
     >
-      <Icone aria-label={destino.rotulo} className="size-5 shrink-0" />
-      <span>{destino.rotulo}</span>
+      <span
+        className={cn(
+          "flex h-8 w-14 items-center justify-center rounded-full",
+          ligado ? "bg-secondary-container text-on-secondary-container" : "text-on-surface-variant",
+        )}
+      >
+        <Icone aria-hidden="true" className="size-6 shrink-0" />
+      </span>
+      <span
+        className={cn(
+          "text-center text-label-sm tracking-normal",
+          compacto && "sr-only",
+          ligado ? "text-on-surface" : "text-on-surface-variant",
+        )}
+      >
+        {destino.rotulo}
+      </span>
     </Link>
   );
 }
@@ -48,19 +65,19 @@ export function AppNav() {
 
   return (
     <>
-      <aside className="hidden w-56 shrink-0 border-r border-outline-variant bg-surface-container md:flex md:flex-col md:py-4">
-        <nav aria-label="Seções do Monitor Cidadão" className="flex flex-col gap-1">
+      <aside className="hidden w-28 shrink-0 flex-col bg-surface py-space-sm desktop:flex">
+        <nav aria-label="Seções do Monitor Cidadão" className="flex flex-col gap-space-sm">
           {DESTINOS.map((destino) => (
-            <ItemNav key={destino.href} destino={destino} pathname={pathname} />
+            <ItemNav key={destino.href} compacto={false} destino={destino} pathname={pathname} />
           ))}
         </nav>
       </aside>
       <nav
         aria-label="Seções do Monitor Cidadão"
-        className="fixed inset-x-0 bottom-0 z-20 flex border-t border-outline-variant bg-surface-container md:hidden"
+        className="fixed inset-x-0 bottom-0 z-20 flex h-20 items-stretch bg-surface-container-high desktop:hidden"
       >
         {DESTINOS.map((destino) => (
-          <ItemNav key={destino.href} destino={destino} pathname={pathname} />
+          <ItemNav key={destino.href} compacto destino={destino} pathname={pathname} />
         ))}
       </nav>
     </>
